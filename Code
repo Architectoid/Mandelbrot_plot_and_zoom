@@ -1,0 +1,92 @@
+# Importing tkinter for GUI development
+from future.moves import tkinter
+from tkinter import Button, Entry, Label
+# Importing Pillow to easily draw image pixel by pixel
+from PIL import Image, ImageDraw
+# Importing Matplotlib to show image in a graph
+from matplotlib import pyplot
+
+# Creating GUI canvas
+root = tkinter.Tk()
+canvas = tkinter.Canvas(root, width=400, height=230)
+canvas.pack()
+
+# Text boxes for user inputs
+x1 = Entry(root)
+canvas.create_window(100, 100, window=x1)
+x2 = Entry(root)
+canvas.create_window(300, 100, window=x2)
+y1 = Entry(root)
+canvas.create_window(300, 150, window=y1)
+y2 = Entry(root)
+canvas.create_window(100, 150, window=y2)
+res = Entry(root)
+canvas.create_window(100, 200, window=res)
+Iter = Entry(root)
+canvas.create_window(300, 200, window=Iter)
+
+
+# Main equation which takes boundary coordinates and returns image on graph
+def mandelbrot():
+    # Acts as a scale factor for number of pixels on the screen
+    PreRes = float(res.get()) if (res.get()) != '' else 300
+    RES = int(PreRes / (float(x2.get()) - float(x1.get())))
+    # These are the four numbers that I iterate between
+    # Note that these are the not the input numbers to the set
+    X1 = int(RES * float(x1.get()))
+    X2 = int(RES * float(x2.get()))
+    Y1 = int(-RES * float(y1.get()))
+    Y2 = int(-RES * float(y2.get()))
+    # The number of iterations per pixel
+    IT_NUM = float(Iter.get()) if (Iter.get()) != '' else 100
+    # Creating a blank image of the correct size
+    im = Image.new('HSV', (X2 - X1, Y2 - Y1), (0, 0, 0))
+    # Nested loops iterate through every pixel within boundaries
+    for x in range(X1, X2):
+        for y in range(Y1, Y2):
+            # c is the coordinate of the pixel which I am iterating through
+            c = complex(x / RES, y / RES)
+            # First iteration
+            z = c
+            # n is the number of iterations that have taken place
+            n = 0
+            # loop iterates up to IT_NUM times
+            # if the modulus of the complex number increases beyond 2 we assume that it is tending to infinity
+            # the number of iterations for this to occur dictates the colour
+            while abs(z) <= 2 and n < IT_NUM:
+                z = (z.real * z.real) - (z.imag * z.imag) + (complex(0, 2 * z.real * z.imag)) + c
+                n += 1
+            # Hue is the colour between 0 and 255, multiplied by the ratio of n to IT_NUM a scale is achieved
+            hue = int(255 * n / IT_NUM)
+            # value is grayscale if the point tends to infinity value = 255 (white) if not value = 0 (black)
+            value = 255 if n < IT_NUM else 0
+            # draws image point by point
+            ImageDraw.Draw(im).point([x - X1, y - Y1], (hue, 255, value))
+            continue
+    # Places image onto a graph and defines the axes back to original inputs
+    pyplot.imshow(im, extent=[float(x1.get()), float(x2.get()), float(y2.get()), float(y1.get())])
+    pyplot.show()
+    return
+
+
+# Start button calls the mandelbrot function
+Start = Button(root, text='START', command=mandelbrot)
+canvas.create_window(200, 50, window=Start)
+# Labels for Entries
+X1label = Label(root, text='X left')
+canvas.create_window(100, 75, window=X1label)
+X2label = Label(root, text='X right')
+canvas.create_window(300, 75, window=X2label)
+Y1label = Label(root, text='Y top')
+canvas.create_window(300, 125, window=Y1label)
+Y2label = Label(root, text='Y bottom')
+canvas.create_window(100, 125, window=Y2label)
+resLabel = Label(root, text='Resolution')
+canvas.create_window(100, 175, window=resLabel)
+resDesc = Label(root, text='(Default 300)')
+canvas.create_window(100, 225, window=resDesc)
+IterLabel = Label(root, text='Iteration number')
+canvas.create_window(300, 175, window=IterLabel)
+IterDesc = Label(root, text='(Default 100)')
+canvas.create_window(300, 225, window=IterDesc)
+root.mainloop()
